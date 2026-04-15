@@ -45,7 +45,7 @@ app.get('/api/vehiculo/:patente', authMiddleware, async (req, res) => {
         const page = await browser.newPage();
         
         // Navegar a la página de la PRT
-        await page.goto('https://www.prt.cl/Paginas/ConsultaRevisionTecnica.aspx', {
+        await page.goto('https://www.prt.cl/Paginas/RevisionTecnica.aspx', {
             waitUntil: 'networkidle2',
             timeout: 30000
         });

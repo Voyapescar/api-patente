@@ -44,59 +44,63 @@ app.get('/api/vehiculo/:patente', authMiddleware, async (req, res) => {
         
         const page = await browser.newPage();
         
-        // Navegar a la página de la PRT
-        await page.goto('https://www.prt.cl/Paginas/RevisionTecnica.aspx', {
+        const patenteLimpia = patente.toUpperCase().trim();
+        
+        // Navegar directamente a PatenteChile con la patente en la URL
+        await page.goto(`https://www.patentechile.com/resultados.php?patente=${patenteLimpia}`, {
             waitUntil: 'networkidle2',
-            timeout: 30000
+            timeout: 20000
         });
         
-        // Esperar que el campo de patente esté disponible
-        await page.waitForSelector('#txtPatente', { timeout: 10000 });
+        // Verificar si la patente existe buscando texto clave
+        const noExiste = await page.evaluate(() => {
+            return document.body.innerText.includes('No se encontraron resultados');
+        });
         
-        // Ingresar la patente con delay humano entre teclas
-        const patenteLimpia = patente.toUpperCase().trim();
-        for (const char of patenteLimpia) {
-            await page.type('#txtPatente', char);
-            await humanDelay(Math.floor(Math.random() * 51) + 50); // 50-100ms
+        if (noExiste) {
+            return res.status(404).json({ 
+                error: 'Patente no encontrada en PatenteChile',
+                patente: patenteLimpia
+            });
         }
         
-        // Click en el botón consultar
-        await page.click('#btnConsultar');
-        
-        // Esperar resultados
-        await page.waitForSelector('#pnlResultado', { timeout: 15000 });
-        
-        // Extraer datos
+        // Extraer datos de la tabla
         const datos = await page.evaluate(() => {
-            const getText = (id) => {
-                const el = document.querySelector(id);
-                return el ? el.textContent.trim() : null;
-            };
+            const filas = Array.from(document.querySelectorAll('table tr'));
+            const info = {};
             
-            return {
-                marca: getText('#lblMarca'),
-                modelo: getText('#lblModelo'),
-                anio: getText('#lblAnio'),
-                numeroMotor: getText('#lblNumeroMotor'),
-                vin: getText('#lblVIN'),
-                tipoVehiculo: getText('#lblTipoVehiculo'),
-                fechaVencimiento: getText('#lblFechaVencimiento')
-            };
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length === 2) {
+                    const clave = celdas[0].innerText.toLowerCase();
+                    const valor = celdas[1].innerText.trim();
+                    
+                    if (clave.includes('marca')) info.marca = valor;
+                    if (clave.includes('modelo')) info.modelo = valor;
+                    if (clave.includes('año')) info.anio = valor;
+                    if (clave.includes('chasis')) info.vin = valor;
+                    if (clave.includes('motor')) info.numeroMotor = valor;
+                    if (clave.includes('tipo')) info.tipoVehiculo = valor;
+                }
+            });
+            
+            return info;
         });
         
-        // Verificar si se encontraron datos
-        const tieneDatos = Object.values(datos).some(val => val !== null && val !== '');
+        // Verificar si se extrajeron datos
+        const tieneDatos = Object.keys(datos).length > 0;
         
         if (!tieneDatos) {
             return res.status(404).json({ 
-                error: 'No se encontraron datos para la patente proporcionada',
+                error: 'No se pudieron extraer datos de la patente',
                 patente: patenteLimpia
             });
         }
         
         res.json({
             patente: patenteLimpia,
-            ...datos
+            ...datos,
+            fuente: 'PatenteChile'
         });
         
     } catch (error) {

@@ -5,7 +5,6 @@ WORKDIR /app
 
 # Saltamos la descarga de Chrome porque ya está en la imagen base
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 COPY package*.json ./
 RUN npm install --only=production

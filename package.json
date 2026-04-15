@@ -6,6 +6,11 @@
   "scripts": {
     "start": "node server.js"
   },
+  "config": {
+    "puppeteer": {
+      "skip_chromium_download": true
+    }
+  },
   "engines": {
     "node": ">=18"
   },

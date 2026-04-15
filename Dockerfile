@@ -1,20 +1,16 @@
 FROM ghcr.io/puppeteer/puppeteer:latest
 
 USER root
-
 WORKDIR /app
 
-# Copiar archivos de dependencias
+# Saltamos la descarga de Chrome porque ya está en la imagen base
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+
 COPY package*.json ./
+RUN npm install --only=production
 
-# Instalar dependencias
-RUN npm install
-
-# Copiar código fuente
 COPY . .
 
-# Exponer puerto
 EXPOSE 8080
-
-# Comando de inicio
 CMD ["node", "server.js"]

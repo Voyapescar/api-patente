@@ -1,33 +1,14 @@
 {
   "name": "api-patente-prt",
   "version": "1.0.0",
-  "description": "API de scraping para consulta técnica de vehículos desde PRT Chile",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
-  },
-  "config": {
-    "puppeteer": {
-      "skip_chromium_download": true
-    }
-  },
-  "engines": {
-    "node": ">=18"
   },
   "dependencies": {
     "express": "^4.18.2",
     "puppeteer": "^21.6.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
-  },
-  "keywords": [
-    "puppeteer",
-    "scraping",
-    "api",
-    "prt",
-    "chile",
-    "vehiculos"
-  ],
-  "author": "",
-  "license": "MIT"
+  }
 }
